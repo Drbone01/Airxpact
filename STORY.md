@@ -19,7 +19,7 @@ Airxpact is an AI travel and aviation assistant on WhatsApp. In one conversation
 
 It remembers the traveller between conversations: home airport, seat preference, the trip they planned last week.
 
-## How I built it
+## How We built it
 
 The whole system runs on AWS in `us-east-1` and was built entirely in the AWS console.
 
@@ -57,7 +57,7 @@ $$
 
 messages (more when paragraphs don't pack evenly), numbered so they read in order.
 
-## Challenges I ran into
+## Challenges We ran into
 
 **Getting a reply back before the channel gave up.** My first WhatsApp prototype used a Twilio webhook, which must answer within 15 seconds. A full trip plan (memory lookup, several tool calls, a long answer) regularly took longer:
 
@@ -80,18 +80,18 @@ I added a fast path that answered inside the window and handed slow turns to an 
 - it gave prices without saying where they came from
 - it greeted returning travellers with a long introduction every time
 
-I fixed these in the system prompt and with two local tools: a safe calculator, which parses the expression with `ast` and never runs `eval`, and a date calculator. Every price must now carry a source or be labelled as an estimate. An acceptance test suite and a custom "consistency" evaluator now check for these regressions on live traffic.
+We fixed these in the system prompt and with two local tools: a safe calculator, which parses the expression with `ast` and never runs `eval`, and a date calculator. Every price must now carry a source or be labelled as an estimate. An acceptance test suite and a custom "consistency" evaluator now check for these regressions on live traffic.
 
 **Writing policies for tools.** Cedar actions on the Gateway are named `<Target>___<tool>`, with three underscores. Getting one character wrong silently denies the tool. I ran the policy engine in Log only mode first, read the decisions in the logs, then switched to Enforce.
 
-## Accomplishments that I'm proud of
+## Accomplishments that We're proud of
 
 - One WhatsApp message produces a complete, sourced trip plan, with live data from nine providers.
 - No secret lives in code. Every key sits in Secrets Manager or the AgentCore Identity vault, and every tool call is authorized by policy outside the model.
 - The knowledge base keeps itself current without anyone touching it.
 - Everything, including evaluations, is observable from one CloudWatch dashboard.
 
-## What I learned
+## What We learned
 
 - **Pick the channel for its delivery model, not just its reach.** An event-driven channel (End User Messaging Social to SNS to Lambda) suits an agent whose turns take seconds to minutes far better than a synchronous webhook.
 - **Separate identity for each caller pays off.** Giving the WhatsApp channel its own Cognito client made tokens, logs and policies easy to reason about. It is also what made the Gateway's outbound OAuth work.
