@@ -84,7 +84,7 @@ policies/               Cedar policies
 evaluation/             Custom evaluator prompts and acceptance tests
 knowledge/              Starter aviation documents and crawl seed URLs
 web/                    Web app (static, deployed to Amplify)
-docs/                   Architecture diagram and deployment guide
+docs/                   Architecture diagram (PNG, SVG, draw.io), deployment guide, project story
 tests/                  Unit tests
 ```
 
@@ -145,6 +145,31 @@ pytest
 ```
 
 The unit tests cover the agent's calculator and date tools, the tool handlers (with provider responses mocked), WhatsApp formatting, message splitting, the End User Messaging event flow, Twilio signature validation and the API's request checks. End-to-end scenarios are listed in `evaluation/acceptance-tests.md`.
+
+## Challenges
+
+| Challenge | What happened | Resolution |
+| --- | --- | --- |
+| Channel response deadline | The first prototype used a Twilio webhook, which must answer within 15 s. Full trip plans took longer, and outbound messages were blocked until Trust Hub verification. | Moved to AWS End User Messaging Social. SNS invokes the Lambda asynchronously, so a turn can take up to the 300 s function timeout. |
+| Workload token missing | With IAM inbound auth the runtime does not create a workload token, so the agent could not fetch the Gateway OAuth token. | JWT inbound auth with a Cognito client per channel (`WORKLOAD_NAME` kept as a fallback for IAM testing). |
+| `invalid_grant` from Cognito | The channel app client did not have the client-credentials grant enabled. | Enabled Client credentials and the `airxpact-api/chat` scope on every machine-to-machine client. |
+| `AccessDeniedException` on send | The IAM policy named the WABA ARN instead of the phone number. | `social-messaging:SendWhatsAppMessage` on `phone-number-id/*`. |
+| `InvalidParametersException` on send | Numbers in the SNS event have no leading `+`. | Normalised every recipient to strict E.164. |
+| Duplicate replies | SNS can deliver the same event more than once. | Conditional `msg#<id>` put in DynamoDB with a 3-day TTL. |
+| Breaking dependencies | `mcp` 2.x removed the client the agent used, and the first model was retired. | Pinned versions, moved to `MCPClient(url=..., headers=...)`, model ID in an environment variable. |
+| Unreliable answers | The agent stopped after "let me search", did date and fare arithmetic in its head, and quoted prices without sources. | Prompt rules, local `calculator` and `date_calculator` tools, source-or-estimate rule, consistency evaluator and acceptance tests. |
+| Silent policy denials | Gateway Cedar actions are named `<Target>___<tool>` (three underscores); one typo denies the tool. | Policy engine run in Log only mode first, decisions checked in logs, then Enforce. |
+
+## What we learned
+
+- An event-driven channel suits agent turns that take seconds to minutes far better than a synchronous webhook.
+- A separate Cognito client per caller keeps tokens, logs and policies easy to reason about, and is what makes the Gateway's outbound OAuth work.
+- Models need tools for what they are bad at: a small calculator and date tool removed a whole class of wrong answers.
+- Guardrails belong outside the prompt. Cedar policies at the Gateway hold even when the model is persuaded otherwise.
+- Traces and online evaluations are development tools. Most bugs were found by reading a trace rather than guessing.
+- Almost every blocker was spelled out in a CloudWatch log line; reading it first saved more time than any code change.
+
+The full project story is in [docs/STORY.md](docs/STORY.md).
 
 ## Security and privacy
 
