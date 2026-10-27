@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Airxpact - Your AI aviation expert</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="top">
+    <img src="logo.jpg" alt="Airxpact" class="logo" />
+    <div class="top-actions">
+      <span id="who"></span>
+      <button id="newChat" class="ghost hidden">New trip</button>
+      <button id="logout" class="ghost hidden">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="welcome" class="welcome hidden">
+      <h1>Book. Pack. Go.</h1>
+      <p>One assistant for routes, weather, tickets, schedules, things to do and every aviation question.</p>
+      <button id="login" class="primary">Sign in to start</button>
+    </section>
+
+    <section id="chat" class="chat hidden">
+      <div id="messages" class="messages">
+        <div class="msg bot">Hi, I'm Airxpact. Tell me where you're going, or ask me anything about flying.</div>
+      </div>
+      <div class="suggestions" id="suggestions">
+        <button>What is the fastest way from Lagos to Dubai next Friday?</button>
+        <button>Will the weather delay my flight to London tomorrow?</button>
+        <button>I have an 8-hour layover in Doha. What can I see?</button>
+        <button>What are my rights if my flight is cancelled?</button>
+      </div>
+      <form id="form" class="composer">
+        <textarea id="input" rows="2" placeholder="Ask Airxpact..." required></textarea>
+        <button type="submit" class="primary" id="send">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+[
+  {
+    "name": "get_aviation_weather",
+    "description": "Get live aviation weather (METAR observation and TAF forecast) for one or more airports. Use ICAO codes, e.g. DNMM (Lagos), EGLL (London Heathrow), OMDB (Dubai), HAAB (Addis Ababa), LTFM (Istanbul). Use this for delay-risk questions and to decode METAR/TAF.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "icao_codes": {
+          "type": "string",
+          "description": "Comma-separated ICAO airport codes, e.g. 'DNMM,EGLL'"
+        }
+      },
+      "required": [
+        "icao_codes"
+      ]
+    }
+  },
+  {
+    "name": "get_destination_forecast",
+    "description": "Get the daily weather forecast (up to 16 days ahead) for a destination city: max/min temperature in C, rain chance, wind. Use it for packing advice and destination weather.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": "string",
+          "description": "City name, e.g. 'London'"
+        },
+        "start_date": {
+          "type": "string",
+          "description": "Optional first date YYYY-MM-DD"
+        },
+        "end_date": {
+          "type": "string",
+          "description": "Optional last date YYYY-MM-DD"
+        }
+      },
+      "required": [
+        "city"
+      ]
+    }
+  },
+  {
+    "name": "search_flights",
+    "description": "Search live flight offers and fares between two airports. Returns price, airline, stops, layover minutes, total duration, baggage, fare brand and change/refund conditions. Use IATA airport or city codes (LOS, LHR, LON, DXB, NBO).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "type": "string",
+          "description": "IATA code of the departure airport or city"
+        },
+        "destination": {
+          "type": "string",
+          "description": "IATA code of the arrival airport or city"
+        },
+        "departure_date": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        },
+        "return_date": {
+          "type": "string",
+          "description": "Optional return date YYYY-MM-DD for round trips"
+        },
+        "adults": {
+          "type": "integer",
+          "description": "Number of adult passengers (default 1)"
+        },
+        "cabin_class": {
+          "type": "string",
+          "description": "economy, premium_economy, business or first"
+        },
+        "max_connections": {
+          "type": "integer",
+          "description": "0 for nonstop only, 1 for up to one stop (default 1)"
+        },
+        "max_price": {
+          "type": "number",
+          "description": "Optional maximum total price"
+        },
+        "max_results": {
+          "type": "integer",
+          "description": "How many offers to return (default 6, max 10)"
+        }
+      },
+      "required": [
+        "origin",
+        "destination",
+        "departure_date"
+      ]
+    }
+  },
+  {
+    "name": "plan_trip_timeline",
+    "description": "Build a departure-day timeline: when to leave home, arrive at the airport, check-in and bag-drop closing, security, boarding and gate closing. Handles time zones.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "departure_time_local": {
+          "type": "string",
+          "description": "Local departure time, ISO format YYYY-MM-DDTHH:MM"
+        },
+        "timezone": {
+          "type": "string",
+          "description": "IANA time zone of the departure airport, e.g. Africa/Lagos"
+        },
+        "departure_airport": {
+          "type": "string",
+          "description": "IATA code"
+        },
+        "international": {
+          "type": "boolean",
+          "description": "True for international flights"
+        },
+        "checked_bags": {
+          "type": "boolean",
+          "description": "True if the traveller is checking bags"
+        },
+        "travel_minutes_to_airport": {
+          "type": "integer",
+          "description": "Travel time from home to the airport in minutes"
+        },
+        "traffic_buffer_minutes": {
+          "type": "integer",
+          "description": "Extra buffer for traffic (default 30)"
+        }
+      },
+      "required": [
+        "departure_time_local",
+        "timezone"
+      ]
+    }
+  },
+  {
+    "name": "create_calendar_file",
+    "description": "Create a calendar file (.ics) with trip events and reminders, and return a download link the user can open to add everything to Google, Outlook or Apple calendar.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "description": "Trip events",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "start_local": {
+                "type": "string",
+                "description": "YYYY-MM-DDTHH:MM local time"
+              },
+              "end_local": {
+                "type": "string",
+                "description": "YYYY-MM-DDTHH:MM local time"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "IANA time zone, e.g. Europe/London"
+              },
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "start_local",
+              "timezone"
+            ]
+          }
+        }
+      },
+      "required": [
+        "events"
+      ]
+    }
+  },
+  {
+    "name": "get_country_info",
+    "description": "Facts about a country: official currency (code, name, symbol), languages spoken, capital, time zones, international calling code, driving side. Use it whenever you mention a destination's currency or language.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "country": {
+          "type": "string",
+          "description": "Country name or ISO code, e.g. 'France', 'GB', 'Ghana'"
+        }
+      },
+      "required": [
+        "country"
+      ]
+    }
+  },
+  {
+    "name": "get_exchange_rate",
+    "description": "Today's reference exchange rate and conversion between two currencies (ISO codes). Use for every price conversion.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "from_currency": {
+          "type": "string",
+          "description": "ISO code, e.g. EUR"
+        },
+        "to_currency": {
+          "type": "string",
+          "description": "ISO code, e.g. NGN"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount to convert (default 1)"
+        }
+      },
+      "required": [
+        "from_currency",
+        "to_currency"
+      ]
+    }
+  },
+  {
+    "name": "search_ground_transport",
+    "description": "Find scheduled buses, trains or other public transport between two places (cities, stations, addresses or airports) with operators, times, duration and fares where published.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "type": "string"
+        },
+        "destination": {
+          "type": "string"
+        },
+        "departure_time_utc": {
+          "type": "string",
+          "description": "Optional RFC3339 time, e.g. 2026-11-02T06:00:00Z"
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Any of BUS, RAIL, TRAIN, SUBWAY, LIGHT_RAIL (default BUS)"
+        },
+        "language": {
+          "type": "string",
+          "description": "Optional language code for names, e.g. en, fr"
+        }
+      },
+      "required": [
+        "origin",
+        "destination"
+      ]
+    }
+  },
+  {
+    "name": "get_flight_status",
+    "description": "Live status of a flight by flight number: scheduled and estimated times, delays, terminal and gate.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "flight_number": {
+          "type": "string",
+          "description": "IATA flight number, e.g. P47120, BA74"
+        },
+        "date": {
+          "type": "string",
+          "description": "Optional YYYY-MM-DD"
+        }
+      },
+      "required": [
+        "flight_number"
+      ]
+    }
+  },
+  {
+    "name": "create_booking_request",
+    "description": "Record a booking request (bus, flight, airport transfer, translator, hotel, tour) for the Airxpact team to confirm with the traveller. Only call after the traveller confirmed all details, name and contact. Returns a booking reference.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "booking_type": {
+          "type": "string",
+          "description": "bus, flight, airport_transfer, translator, hotel, tour or other"
+        },
+        "traveller_name": {
+          "type": "string"
+        },
+        "contact": {
+          "type": "string",
+          "description": "Phone (with country code) or email"
+        },
+        "passengers": {
+          "type": "integer"
+        },
+        "travel_date": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        },
+        "details": {
+          "type": "string",
+          "description": "Everything the team needs: route, times, operator, language pair, budget, special needs"
+        }
+      },
+      "required": [
+        "booking_type",
+        "traveller_name",
+        "contact"
+      ]
+    }
+  },
+  {
+    "name": "get_booking_status",
+    "description": "Status of an earlier booking request by its reference (AXP-XXXXXX).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "booking_reference": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "booking_reference"
+      ]
+    }
+  }
+]

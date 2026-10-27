@@ -1,0 +1,11 @@
+{
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "Sns": {
+        "Type": "Notification",
+        "Message": "{\"context\": {\"MetaWabaIds\": [{\"wabaId\": \"1234567890abcde\", \"arn\": \"arn:aws:social-messaging:us-east-1:111122223333:waba/REPLACE_WABA_ID\"}], \"MetaPhoneNumberIds\": [{\"metaPhoneNumberId\": \"abcde1234567890\", \"arn\": \"arn:aws:social-messaging:us-east-1:111122223333:phone-number-id/REPLACE_PHONE_NUMBER_ID\"}]}, \"whatsAppWebhookEntry\": \"{\\\"id\\\": \\\"1234567890abcde\\\", \\\"changes\\\": [{\\\"field\\\": \\\"messages\\\", \\\"value\\\": {\\\"messaging_product\\\": \\\"whatsapp\\\", \\\"metadata\\\": {\\\"display_phone_number\\\": \\\"15550100\\\", \\\"phone_number_id\\\": \\\"abcde1234567890\\\"}, \\\"contacts\\\": [{\\\"profile\\\": {\\\"name\\\": \\\"Test\\\"}, \\\"wa_id\\\": \\\"2348012345678\\\"}], \\\"messages\\\": [{\\\"from\\\": \\\"2348012345678\\\", \\\"id\\\": \\\"wamid.TEST0001\\\", \\\"timestamp\\\": \\\"1792300000\\\", \\\"type\\\": \\\"text\\\", \\\"text\\\": {\\\"body\\\": \\\"I am going to London on 12 December from Lagos, plan my trip. Budget $900, I hate long layovers.\\\"}}]}}]}\", \"aws_account_id\": \"111122223333\", \"message_timestamp\": \"2026-10-19T09:00:00Z\", \"messageId\": \"test-0001\"}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Airxpact Places Search",
+    "version": "1.0.0",
+    "description": "Google Places API (New) text search, used for tourist centers: attractions, museums, restaurants, hotels, markets and beaches."
+  },
+  "servers": [{ "url": "https://places.googleapis.com" }],
+  "paths": {
+    "/v1/places:searchText": {
+      "post": {
+        "operationId": "searchPlaces",
+        "summary": "Find places to visit, eat or stay",
+        "description": "Search for attractions, museums, beaches, markets, restaurants and hotels. Put the place type and the area in textQuery, e.g. 'family-friendly restaurants near Osu, Accra' or 'museums near Doha airport'.",
+        "parameters": [
+          {
+            "name": "fields",
+            "in": "query",
+            "required": true,
+            "description": "Always send exactly this value.",
+            "schema": {
+              "type": "string",
+              "enum": ["places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.primaryType,places.googleMapsUri,places.regularOpeningHours.weekdayDescriptions,places.editorialSummary"]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "textQuery": { "type": "string", "description": "What and where, e.g. 'best beaches near Cape Town'" },
+                  "maxResultCount": { "type": "integer", "description": "1 to 10 results", "minimum": 1, "maximum": 10 },
+                  "minRating": { "type": "number", "description": "Optional minimum rating 0-5" },
+                  "openNow": { "type": "boolean", "description": "Only places open now" },
+                  "languageCode": { "type": "string", "description": "Optional language, e.g. en" }
+                },
+                "required": ["textQuery"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Matching places",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    }
+  }
+}

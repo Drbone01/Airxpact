@@ -1,0 +1,17 @@
+Airxpact MVP 2 - Web Crawler seed URLs (Phase 28)
+Open each URL in your browser first. Keep only the ones that load and are the OFFICIAL site.
+Check each site's terms of use; the crawler respects robots.txt. Add your own airlines/authorities.
+
+DATA SOURCE 1: airxpact-airlines   (Scope: Default; include filter: .*(baggage|luggage|refund|cancel|change|check-in|fare|condition|policy|faq|travel-info|help).*)
+https://flyairpeace.com/
+https://www.arikair.com/
+https://www.ibomair.com/
+
+DATA SOURCE 2: airxpact-authorities   (Scope: Default)
+https://ncaa.gov.ng/
+https://faan.gov.ng/
+https://immigration.gov.ng/
+
+DATA SOURCE 3: airxpact-travel-advice   (Scope: Default; include filter: .*(entry-requirements|visa|travel-advice|safety).*)
+https://www.gov.uk/foreign-travel-advice
+https://travel.state.gov/content/travel/en/international-travel.html

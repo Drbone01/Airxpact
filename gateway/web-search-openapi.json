@@ -1,0 +1,93 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Airxpact Web Search",
+    "version": "1.0.0",
+    "description": "Live web search (Tavily) for current, verifiable information: visas and entry rules, airline policies, travel advisories, bus operators, events and prices."
+  },
+  "servers": [
+    {
+      "url": "https://api.tavily.com"
+    }
+  ],
+  "paths": {
+    "/search": {
+      "post": {
+        "operationId": "searchWeb",
+        "summary": "Search the live web",
+        "description": "Search the live web and get an answer with source URLs. For visas, entry rules and airline policies set include_domains to the official sites (e.g. gov.uk, flyairpeace.com).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "What to search for"
+                  },
+                  "topic": {
+                    "type": "string",
+                    "enum": [
+                      "general",
+                      "news"
+                    ],
+                    "description": "news for recent events and advisories"
+                  },
+                  "search_depth": {
+                    "type": "string",
+                    "enum": [
+                      "basic",
+                      "advanced"
+                    ]
+                  },
+                  "max_results": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 8
+                  },
+                  "include_answer": {
+                    "type": "boolean",
+                    "description": "Always true"
+                  },
+                  "include_domains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Only search these domains"
+                  },
+                  "time_range": {
+                    "type": "string",
+                    "enum": [
+                      "day",
+                      "week",
+                      "month",
+                      "year"
+                    ]
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answer and sources",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
