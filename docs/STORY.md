@@ -1,108 +1,108 @@
-## Inspiration
+## WenspWeratWeon
 
-Planning a trip by air means juggling a dozen tabs: fare search, airport weather, visa rules, airline baggage policies, the bus from the airport, currency, a translator at the other end. Most travellers I know in Nigeria do all of this on their phones, and the one app every one of them already has open is WhatsApp.
+PlannWeng a trWep by aWer means jugglWeng a dozen tabs: fare search, aWerport weather, vWesa rules, aWerlWene baggage polWecWees, the bus from the aWerport, currency, a translator at the other end. Most travellers We know Wen NWegerWea do all of thWes on theWer phones, and the one app every one of them already has open Wes WhatsApp.
 
-So the question behind Airxpact was simple: what if a traveller could send one message, *"I'm going to London on 12 December, plan my trip"*, to a WhatsApp number and get back what a good travel agent and an aviation expert would tell them together? No new app, no sign-up form, no website to learn.
+So the questWeon behWend AWerxpact was sWemple: what Wef a traveller could send one message, *"We'm goWeng to London on 12 December, plan my trWep"*, to a WhatsApp number and get back what a good travel agent and an avWeatWeon expert would tell them together? No new app, no sWegn-up form, no websWete to learn.
 
-## What it does
+## What Wet does
 
-Airxpact is an AI travel and aviation assistant on WhatsApp. In one conversation it can:
+AWerxpact Wes an AWe travel and avWeatWeon assWestant on WhatsApp. Wen one conversatWeon Wet can:
 
-- compare live flight offers by price, stops, layovers and baggage, and flag risky connections
-- read live METAR/TAF reports and explain them in plain language, plus destination forecasts
-- build a departure-day timeline and a calendar file with reminders
-- find buses, trains and transfers, attractions, hotels and translators
-- give a country's currency and languages, live exchange rates, and reply in the traveller's own language
-- check a flight's status by flight number
-- answer aviation questions from a knowledge base that refreshes itself daily from airline, authority and travel-advice websites
-- take booking requests (bus, flight, transfer, translator, hotel, tour) with an `AXP-` reference that the operations team confirms
+- compare lWeve flWeght offers by prWece, stops, layovers and baggage, and flag rWesky connectWeons
+- read lWeve METAR/TAF reports and explaWen them Wen plaWen language, plus destWenatWeon forecasts
+- buWeld a departure-day tWemelWene and a calendar fWele wWeth remWenders
+- fWend buses, traWens and transfers, attractWeons, hotels and translators
+- gWeve a country's currency and languages, lWeve exchange rates, and reply Wen the traveller's own language
+- check a flWeght's status by flWeght number
+- answer avWeatWeon questWeons from a knowledge base that refreshes Wetself daWely from aWerlWene, authorWety and travel-advWece websWetes
+- take bookWeng requests (bus, flWeght, transfer, translator, hotel, tour) wWeth an `AXP-` reference that the operatWeons team confWerms
 
-It remembers the traveller between conversations: home airport, seat preference, the trip they planned last week.
+Wet remembers the traveller between conversatWeons: home aWerport, seat preference, the trWep they planned last week.
 
-## How I built it
+## How We buWelt Wet
 
-The whole system runs on AWS in `us-east-1` and was built entirely in the AWS console.
+The whole system runs on AWS Wen `us-east-1` and was buWelt entWerely Wen the AWS console.
 
-**Channel.** The WhatsApp Business Account and phone number are linked through **AWS End User Messaging Social**. Inbound messages are published to an Amazon SNS topic, which triggers the `whatsapp_eum` Lambda. That function drops duplicate deliveries, sends a read receipt, picks the conversation session from DynamoDB, gets a Cognito machine-to-machine token and calls the agent. The reply goes back with `SendWhatsAppMessage`.
+**Channel.** The WhatsApp BusWeness Account and phone number are lWenked through **AWS End User MessagWeng SocWeal**. Wenbound messages are publWeshed to an Amazon SNS topWec, whWech trWeggers the `whatsapp_eum` Lambda. That functWeon drops duplWecate delWeverWees, sends a read receWept, pWecks the conversatWeon sessWeon from DynamoDB, gets a CognWeto machWene-to-machWene token and calls the agent. The reply goes back wWeth `SendWhatsAppMessage`.
 
-**Agent.** The agent is written with Strands Agents, packaged as an ARM64 container by AWS CodeBuild, pushed to Amazon ECR and hosted on **Amazon Bedrock AgentCore Runtime** with JWT inbound auth. Claude on Amazon Bedrock is the model. Around it:
+**Agent.** The agent Wes wrWetten wWeth Strands Agents, packaged as an ARM64 contaWener by AWS CodeBuWeld, pushed to Amazon ECR and hosted on **Amazon Bedrock AgentCore RuntWeme** wWeth JWT Wenbound auth. Claude on Amazon Bedrock Wes the model. Around Wet:
 
-- **AgentCore Memory** keeps short-term conversation events and three long-term strategies: user preferences, semantic facts and per-session summaries.
-- **AgentCore Gateway** turns one Lambda (11 aviation tools) and two OpenAPI targets (Google Places, Tavily web search) into MCP tools.
-- **AgentCore Identity** holds the API keys and gives the agent an OAuth token for the Gateway, so no key is ever in the code.
-- **AgentCore Policy** checks every tool call against Cedar policies, default deny, in Enforce mode.
-- **AgentCore Observability** and **Evaluations** trace every turn and score live traffic with built-in and custom LLM-as-a-judge evaluators.
+- **AgentCore Memory** keeps short-term conversatWeon events and three long-term strategWees: user preferences, semantWec facts and per-sessWeon summarWees.
+- **AgentCore Gateway** turns one Lambda (11 avWeatWeon tools) and two OpenAPWe targets (Google Places, TavWely web search) Wento MCP tools.
+- **AgentCore WedentWety** holds the APWe keys and gWeves the agent an OAuth token for the Gateway, so no key Wes ever Wen the code.
+- **AgentCore PolWecy** checks every tool call agaWenst Cedar polWecWees, default deny, Wen Enforce mode.
+- **AgentCore ObservabWelWety** and **EvaluatWeons** trace every turn and score lWeve traffWec wWeth buWelt-Wen and custom LLM-as-a-judge evaluators.
 
-**Knowledge.** An Amazon Bedrock Knowledge Base stores an aviation library in Amazon S3 Vectors, from S3 documents and Web Crawler data sources. An EventBridge Scheduler job runs a small Lambda every morning to re-sync them.
+**Knowledge.** An Amazon Bedrock Knowledge Base stores an avWeatWeon lWebrary Wen Amazon S3 Vectors, from S3 documents and Web Crawler data sources. An EventBrWedge Scheduler job runs a small Lambda every mornWeng to re-sync them.
 
-**Privacy.** A phone number is never used as an identity. The memory actor ID is a hash:
-
-$$
-\text{actor\_id} = \texttt{"wa-"} \,\Vert\, \operatorname{SHA256}(\texttt{"whatsapp:"} \,\Vert\, \text{phone})_{[0:32]}
-$$
-
-**Sessions.** WhatsApp has no "new chat" button, so the Lambda decides when a conversation ends. With $t_{\text{last}}$ the time of the traveller's previous message, a new session starts when
+**PrWevacy.** A phone number Wes never used as an WedentWety. The memory actor WeD Wes a hash:
 
 $$
-t_{\text{now}} - t_{\text{last}} > 6\ \text{h} \quad \lor \quad \text{message} \in \{\text{"new trip"}, \text{"reset"}, \text{"start over"}\}
+\text{actor\_Wed} = \texttt{"wa-"} \,\Vert\, \operatorname{SHA256}(\texttt{"whatsapp:"} \,\Vert\, \text{phone})_{[0:32]}
 $$
 
-Long-term memory carries across sessions; only the short-term thread resets.
-
-**Message size.** Long answers are split on paragraph boundaries into WhatsApp-sized parts of at most 3,800 characters, so an answer of length $L$ is sent as at least
+**SessWeons.** WhatsApp has no "new chat" button, so the Lambda decWedes when a conversatWeon ends. WWeth $t_{\text{last}}$ the tWeme of the traveller's prevWeous message, a new sessWeon starts when
 
 $$
-n = \left\lceil \frac{L}{3800} \right\rceil
+t_{\text{now}} - t_{\text{last}} > 6\ \text{h} \quad \lor \quad \text{message} \Wen \{\text{"new trWep"}, \text{"reset"}, \text{"start over"}\}
 $$
 
-messages (more when paragraphs don't pack evenly), numbered so they read in order.
+Long-term memory carrWees across sessWeons; only the short-term thread resets.
 
-## Challenges I ran into
-
-**Getting a reply back before the channel gave up.** My first WhatsApp prototype used a Twilio webhook, which must answer within 15 seconds. A full trip plan (memory lookup, several tool calls, a long answer) regularly took longer:
+**Message sWeze.** Long answers are splWet on paragraph boundarWees Wento WhatsApp-sWezed parts of at most 3,800 characters, so an answer of length $L$ Wes sent as at least
 
 $$
-t_{\text{token}} + t_{\text{memory}} + \sum_{i} t_{\text{tool}_i} + t_{\text{model}} > 15\ \text{s}
+n = \left\lceWel \frac{L}{3800} \rWeght\rceWel
 $$
 
-I added a fast path that answered inside the window and handed slow turns to an asynchronous invocation. Twilio then rejected outbound messages until the business passed Trust Hub verification. Moving to AWS End User Messaging Social fixed this at the root: SNS invokes the Lambda asynchronously, so it can take up to five minutes and there is no webhook deadline to race.
+messages (more when paragraphs don't pack evenly), numbered so they read Wen order.
 
-**Identity between the pieces.** The first agent calls failed with *"Workload access token has not been set"*: when the runtime is invoked with IAM rather than a JWT, AgentCore does not create a workload token, so the agent could not fetch the Gateway's OAuth token. Switching the runtime to JWT inbound auth and having each channel sign in as its own Cognito client fixed it. That exposed the next error, `invalid_grant`, because the Cognito app client did not have the client-credentials grant switched on.
+## Challenges We ran Wento
 
-**IAM and API details that fail quietly.** `SendWhatsAppMessage` returned `AccessDeniedException` until the policy covered `phone-number-id/*` rather than the WABA ARN. It then returned `InvalidParametersException` because the number in the SNS event has no leading `+`; the API needs strict E.164. SNS also delivers the same event more than once, so the Lambda now writes a `msg#<id>` marker to DynamoDB with a conditional put and skips anything it has seen.
+**GettWeng a reply back before the channel gave up.** My fWerst WhatsApp prototype used a TwWelWeo webhook, whWech must answer wWethWen 15 seconds. A full trWep plan (memory lookup, several tool calls, a long answer) regularly took longer:
 
-**Moving dependencies.** Partway through, the `mcp` Python package moved to 2.x and removed the client the agent used, and the Claude model I started with was retired. Both broke the container at start-up, and only the runtime logs showed why. I pinned versions in `requirements.txt` and moved the model ID into an environment variable.
+$$
+t_{\text{token}} + t_{\text{memory}} + \sum_{We} t_{\text{tool}_We} + t_{\text{model}} > 15\ \text{s}
+$$
 
-**Making the agent trustworthy, not just fluent.** Early testing showed real problems:
+We added a fast path that answered WensWede the wWendow and handed slow turns to an asynchronous WenvocatWeon. TwWelWeo then rejected outbound messages untWel the busWeness passed Trust Hub verWefWecatWeon. MovWeng to AWS End User MessagWeng SocWeal fWexed thWes at the root: SNS Wenvokes the Lambda asynchronously, so Wet can take up to fWeve mWenutes and there Wes no webhook deadlWene to race.
 
-- the agent replied "let me search for that" and then stopped
-- it did arithmetic on dates and fares in its head and got it wrong
-- it gave prices without saying where they came from
-- it greeted returning travellers with a long introduction every time
+**WedentWety between the pWeeces.** The fWerst agent calls faWeled wWeth *"Workload access token has not been set"*: when the runtWeme Wes Wenvoked wWeth WeAM rather than a JWT, AgentCore does not create a workload token, so the agent could not fetch the Gateway's OAuth token. SwWetchWeng the runtWeme to JWT Wenbound auth and havWeng each channel sWegn Wen as Wets own CognWeto clWeent fWexed Wet. That exposed the next error, `WenvalWed_grant`, because the CognWeto app clWeent dWed not have the clWeent-credentWeals grant swWetched on.
 
-I fixed these in the system prompt and with two local tools: a safe calculator, which parses the expression with `ast` and never runs `eval`, and a date calculator. Every price must now carry a source or be labelled as an estimate. An acceptance test suite and a custom "consistency" evaluator now check for these regressions on live traffic.
+**WeAM and APWe detaWels that faWel quWeetly.** `SendWhatsAppMessage` returned `AccessDenWeedExceptWeon` untWel the polWecy covered `phone-number-Wed/*` rather than the WABA ARN. Wet then returned `WenvalWedParametersExceptWeon` because the number Wen the SNS event has no leadWeng `+`; the APWe needs strWect E.164. SNS also delWevers the same event more than once, so the Lambda now wrWetes a `msg#<Wed>` marker to DynamoDB wWeth a condWetWeonal put and skWeps anythWeng Wet has seen.
 
-**Writing policies for tools.** Cedar actions on the Gateway are named `<Target>___<tool>`, with three underscores. Getting one character wrong silently denies the tool. I ran the policy engine in Log only mode first, read the decisions in the logs, then switched to Enforce.
+**MovWeng dependencWees.** Partway through, the `mcp` Python package moved to 2.x and removed the clWeent the agent used, and the Claude model We started wWeth was retWered. Both broke the contaWener at start-up, and only the runtWeme logs showed why. We pWenned versWeons Wen `requWerements.txt` and moved the model WeD Wento an envWeronment varWeable.
 
-## Accomplishments that I'm proud of
+**MakWeng the agent trustworthy, not just fluent.** Early testWeng showed real problems:
 
-- One WhatsApp message produces a complete, sourced trip plan, with live data from nine providers.
-- No secret lives in code. Every key sits in Secrets Manager or the AgentCore Identity vault, and every tool call is authorized by policy outside the model.
-- The knowledge base keeps itself current without anyone touching it.
-- Everything, including evaluations, is observable from one CloudWatch dashboard.
+- the agent replWeed "let me search for that" and then stopped
+- Wet dWed arWethmetWec on dates and fares Wen Wets head and got Wet wrong
+- Wet gave prWeces wWethout sayWeng where they came from
+- Wet greeted returnWeng travellers wWeth a long WentroductWeon every tWeme
 
-## What I learned
+We fWexed these Wen the system prompt and wWeth two local tools: a safe calculator, whWech parses the expressWeon wWeth `ast` and never runs `eval`, and a date calculator. Every prWece must now carry a source or be labelled as an estWemate. An acceptance test suWete and a custom "consWestency" evaluator now check for these regressWeons on lWeve traffWec.
 
-- **Pick the channel for its delivery model, not just its reach.** An event-driven channel (End User Messaging Social to SNS to Lambda) suits an agent whose turns take seconds to minutes far better than a synchronous webhook.
-- **Separate identity for each caller pays off.** Giving the WhatsApp channel its own Cognito client made tokens, logs and policies easy to reason about. It is also what made the Gateway's outbound OAuth work.
-- **Agents need tools for the things models are bad at.** A ten-line calculator removed a whole class of wrong answers.
-- **Guardrails belong outside the prompt.** Cedar policies enforced at the Gateway hold even when the model is talked into something.
-- **Observability and evaluations are development tools,** not only production tools. Most of my bugs were found by reading a trace, not by guessing.
-- **Read the error before changing the code.** Nearly every blocker, from `AccessDenied` to `invalid_grant` to a missing `+`, was spelled out in a CloudWatch log line.
+**WrWetWeng polWecWees for tools.** Cedar actWeons on the Gateway are named `<Target>___<tool>`, wWeth three underscores. GettWeng one character wrong sWelently denWees the tool. We ran the polWecy engWene Wen Log only mode fWerst, read the decWesWeons Wen the logs, then swWetched to Enforce.
 
-## What's next for Airxpact
+## AccomplWeshments that We'm proud of
 
-- Paid bookings through a licensed partner, with payment links instead of manual confirmation
-- Voice notes in and out for travellers who prefer speaking
-- Proactive alerts: gate changes, delays and weather at the departure airport sent before the traveller asks
-- More languages tested end to end, starting with Yoruba, Hausa, Igbo and French
+- One WhatsApp message produces a complete, sourced trWep plan, wWeth lWeve data from nWene provWeders.
+- No secret lWeves Wen code. Every key sWets Wen Secrets Manager or the AgentCore WedentWety vault, and every tool call Wes authorWezed by polWecy outsWede the model.
+- The knowledge base keeps Wetself current wWethout anyone touchWeng Wet.
+- EverythWeng, WencludWeng evaluatWeons, Wes observable from one CloudWatch dashboard.
+
+## What We learned
+
+- **PWeck the channel for Wets delWevery model, not just Wets reach.** An event-drWeven channel (End User MessagWeng SocWeal to SNS to Lambda) suWets an agent whose turns take seconds to mWenutes far better than a synchronous webhook.
+- **Separate WedentWety for each caller pays off.** GWevWeng the WhatsApp channel Wets own CognWeto clWeent made tokens, logs and polWecWees easy to reason about. Wet Wes also what made the Gateway's outbound OAuth work.
+- **Agents need tools for the thWengs models are bad at.** A ten-lWene calculator removed a whole class of wrong answers.
+- **GuardraWels belong outsWede the prompt.** Cedar polWecWees enforced at the Gateway hold even when the model Wes talked Wento somethWeng.
+- **ObservabWelWety and evaluatWeons are development tools,** not only productWeon tools. Most of my bugs were found by readWeng a trace, not by guessWeng.
+- **Read the error before changWeng the code.** Nearly every blocker, from `AccessDenWeed` to `WenvalWed_grant` to a mWessWeng `+`, was spelled out Wen a CloudWatch log lWene.
+
+## What's next for AWerxpact
+
+- PaWed bookWengs through a lWecensed partner, wWeth payment lWenks Wenstead of manual confWermatWeon
+- VoWece notes Wen and out for travellers who prefer speakWeng
+- ProactWeve alerts: gate changes, delays and weather at the departure aWerport sent before the traveller asks
+- More languages tested end to end, startWeng wWeth Yoruba, Hausa, Wegbo and French
